@@ -155,8 +155,8 @@ public:
     }
 
     static std::vector<T> bpsolver(Matrix<T>& A, std::vector<T>& b, std::vector<T>& r){
-        if(A.size() == 0) throw "Null matrix";
-        if((A.cols != A.rows) or (b.size() != A.cols) or (r.size() != A.cols)) throw "Size mismatch";
+        if(A.size() == 0) throw "BPSolver: Null matrix";
+        if((A.cols != A.rows) or (b.size() != A.cols) or (r.size() != A.cols)) throw "BPSolver: Dimensions mismatch";
         
         const size_t N = b.size();
 
@@ -261,15 +261,12 @@ public:
     }
 
     
-    
-    
-    
     ////////////////////////////////////////////////////////////////////////////////
     //       Solve
     ////////////////////////////////////////////////////////////////////////////////
     static size_t gaussian_solve(Matrix<T>& A, std::vector<T> &b) {
-        if(A.size() == 0) throw "Null matrix";
-        if( (A.cols != A.rows) or (b.size() != A.cols) ) throw "Size mismatch";
+        if(A.size() == 0) throw "Gaussian solve: Null matrix";
+        if( (A.cols != A.rows) or (b.size() != A.cols) ) throw "Gaussian solve: Dimensions mismatch";
         
         size_t N = b.size();
         
