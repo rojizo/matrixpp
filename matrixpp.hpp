@@ -373,6 +373,19 @@ protected:
     }
     
     ////////////////////////////////////////////////////////////////////////////////
+    //       Matrix multiplication
+    ////////////////////////////////////////////////////////////////////////////////
+    friend Matrix<T> operator*(const Matrix<T>& A, const Matrix<T>& B) {
+        if(A.cols != B.rows) thorw "Product: Dimensions mismatch";
+        Matrix<T> AB(A.rows, B.cols, T(0));
+        for(int i=0; i<A.rows; i++)
+            for(int j=0; j<B.cols; j++)
+                for(int k=0; k<A.cols; k++)
+                    AB(i,j) += A(i,k) * B(k,j);
+        return AB;
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////////
     //       Matrix "oposite"
     ////////////////////////////////////////////////////////////////////////////////
     friend Matrix<T> operator-(const Matrix<T>& A) {
@@ -389,7 +402,7 @@ protected:
         return std::move(A) - B;
     }
     friend Matrix<T> operator-(const Matrix<T>& A, Matrix<T> &&B) {
-        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Dimensions mismatch";
+        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Substraction: Dimensions mismatch";
         
         Matrix AB(std::move(B));
         std::transform(A.begin(), A.end(), AB.begin(), AB.begin(), [](const T& a, T& b){ return a-b; });
@@ -397,7 +410,7 @@ protected:
         return AB;
     }
     friend Matrix<T> operator-(Matrix<T>&& A, const Matrix<T> &B) {
-        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Dimensions mismatch";
+        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Substraction: Dimensions mismatch";
         
         Matrix AB(std::move(A));
         
@@ -408,7 +421,7 @@ protected:
         return AB;
     }
     friend Matrix<T> operator-(const Matrix<T>& A, const Matrix<T> &B) {
-        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Dimensions mismatch";
+        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Substraction: Dimensions mismatch";
         
         Matrix<T> AB(A.rows, A.cols);
         std::transform(A.begin(), A.end(), A.begin(), AB.begin(), [](const T& a, T& b){ return a-b; });
@@ -426,7 +439,7 @@ protected:
         return std::move(A) + B;
     }
     friend Matrix<T> operator+(Matrix<T> &&A, const Matrix<T>& B) {
-        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Dimensions mismatch";
+        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Addition: Dimensions mismatch";
         
         Matrix AB(std::move(A));
         auto x = AB.begin();
@@ -436,7 +449,7 @@ protected:
         return AB;
     }
     friend Matrix<T> operator+(const Matrix<T> &A, const Matrix<T>& B) {
-        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Dimensions mismatch";
+        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Addition: Dimensions mismatch";
 
         Matrix<T> AB(A.rows, A.cols);        
         std::transform(A.begin(), A.end(), A.begin(), AB.begin(), [](const T& a, const T& b)->T { return a + b; });
