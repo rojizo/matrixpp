@@ -108,8 +108,12 @@ public:
     }
 
     
+//***************************************************************************
+// Member operators...
+//***************************************************************************
+    
     ////////////////////////////////////////////////////////////////////////////////
-    //       Operators
+    //       Assignament and move operators
     ////////////////////////////////////////////////////////////////////////////////
     Matrix<T>& operator=(Matrix<T>&& rhv) {
         cols = rhv.cols;
@@ -126,6 +130,9 @@ public:
         return *this;
     }
     
+    ////////////////////////////////////////////////////////////////////////////////
+    //       'Accessing' operators
+    ////////////////////////////////////////////////////////////////////////////////
     T& operator()(const size_t row, const size_t col) {
         return *(BASE::begin() + (row * cols + col));
     }
@@ -133,9 +140,27 @@ public:
         return *(BASE::begin() + (row * cols + col));
     }
     
+    ////////////////////////////////////////////////////////////////////////////////
+    //       Inplace addition
+    ////////////////////////////////////////////////////////////////////////////////
+    Matrix<T>& operator+=(const Matrix<T>& rhs) {
+        if((rhs.rows != rows) or (rhs.cols != cols)) throw "Addition: Dimensions mismatch";
+
+        auto x = BASE::begin();
+        auto b = rhs.begin();
+        const auto end = BASE::end();
+        while(x != end) *(x++) += *(b++);
+
+        return *this;
+    }
+    
+    
+//***************************************************************************
+// Static Member...
+//***************************************************************************
     
     ////////////////////////////////////////////////////////////////////////////////
-    //       Static methods
+    //       Indentity construction
     ////////////////////////////////////////////////////////////////////////////////
     static Matrix<T> Identity(size_t n) {
         Matrix<T> I(n, n, T(0));
@@ -330,6 +355,10 @@ protected:
     size_t cols;
     
     
+//***************************************************************************
+// Non member operators...
+//***************************************************************************
+    
     ////////////////////////////////////////////////////////////////////////////////
     //       Scalar multiplication
     ////////////////////////////////////////////////////////////////////////////////
@@ -373,7 +402,7 @@ protected:
     //       Matrix multiplication
     ////////////////////////////////////////////////////////////////////////////////
     friend Matrix<T> operator*(const Matrix<T>& A, const Matrix<T>& B) {
-        if(A.cols != B.rows) thorw "Product: Dimensions mismatch";
+        if(A.cols != B.rows) throw "Product: Dimensions mismatch";
         Matrix<T> AB(A.rows, B.cols, T(0));
         for(int i=0; i<A.rows; i++)
             for(int j=0; j<B.cols; j++)
