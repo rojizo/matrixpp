@@ -150,7 +150,7 @@ public:
         std::vector<T> r(A.rows);
         for(int i=0; i<A.rows; i++)
             for(int j=0; j<A.cols; j++)
-                r(i) += A(i,j); // std::accumulate could be used...
+                r[i] += A(i,j); // std::accumulate could be used...
         return bpsolver(A, b, r);
     }
 
