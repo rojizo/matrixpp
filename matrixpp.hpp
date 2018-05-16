@@ -76,35 +76,49 @@ public:
     ////////////////////////////////////////////////////////////////////////////////
     //       Constructors
     ////////////////////////////////////////////////////////////////////////////////
-    Matrix() : cols{0}, rows{0}, BASE() {
+    Matrix() : _cols{0}, _rows{0}, BASE() {
         std::cout << "contructor: default " << std::endl;
     }
-    Matrix(const size_t rows, const size_t cols) : rows{rows}, cols{cols}, BASE(rows*cols) {
+    Matrix(const size_t rows, const size_t cols) : _rows{rows}, _cols{cols}, BASE(rows*cols) {
         std::cout << "contructor: r/c" << std::endl;
     }
-    Matrix(const size_t rows, const size_t cols, const T& val) : rows{rows}, cols{cols}, BASE(rows*cols, val) {
+    Matrix(const size_t rows, const size_t cols, const T& val) : _rows{rows}, _cols{cols}, BASE(rows*cols, val) {
         std::cout << "contructor: r/c/v" << std::endl;
     }
-    Matrix(const Matrix<T>& A) : rows{A.rows}, cols{A.cols}, BASE(static_cast<const BASE&>(A)) {
+    Matrix(const Matrix<T>& A) : _rows{A._rows}, _cols{A._cols}, BASE(static_cast<const BASE&>(A)) {
         std::cout << "constructor: copy" << std::endl;
     }
-    Matrix(Matrix<T>&& A) : rows{A.rows}, cols{A.cols}, BASE(static_cast<BASE&&>(A)) {
+    Matrix(Matrix<T>&& A) : _rows{A._rows}, _cols{A._cols}, BASE(static_cast<BASE&&>(A)) {
         std::cout << "constructor: move" << std::endl;
     }
     
-    
+
+//***************************************************************************
+// Member methods...
+//***************************************************************************
+
     ////////////////////////////////////////////////////////////////////////////////
-    //       Methods
+    //       Col and row extractors
     ////////////////////////////////////////////////////////////////////////////////
     std::vector<T> row(const size_t row) const {
-        std::vector<T> a(cols);
-        std::copy( BASE::begin() + row * cols, BASE::begin() + (row+1) * cols, a.begin());
+        std::vector<T> a(_cols);
+        std::copy( BASE::begin() + row * _cols, BASE::begin() + (row+1) * _cols, a.begin());
         return a;
     }
     std::vector<T> col(const size_t col) const {
-        std::vector<T> a(rows);
-        for(int i=0; i<rows; i++) a[i] = operator()(i, col);
+        std::vector<T> a(_rows);
+        for(int i=0; i<_rows; i++) a[i] = operator()(i, col);
         return a;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //       Number of cols and rows
+    ////////////////////////////////////////////////////////////////////////////////
+    size_t cols() const {
+        return _cols;
+    }
+    size_t rows() const {
+        return _rows;
     }
 
     
@@ -116,15 +130,15 @@ public:
     //       Assignament and move operators
     ////////////////////////////////////////////////////////////////////////////////
     Matrix<T>& operator=(Matrix<T>&& rhv) {
-        cols = rhv.cols;
-        rows = rhv.rows;
+        _cols = rhv._cols;
+        _rows = rhv._rows;
         BASE::operator=( static_cast<BASE&&>(rhv) );
         std::cout<< "assign: move" <<std::endl;
         return *this;
     }
     Matrix<T>& operator=(const Matrix<T>& rhv) {
-        cols = rhv.cols;
-        rows = rhv.rows;
+        _cols = rhv._cols;
+        _rows = rhv._rows;
         BASE::operator=( static_cast<const BASE&>(rhv) );
         std::cout<< "assign: copy" <<std::endl;
         return *this;
@@ -134,17 +148,17 @@ public:
     //       'Accessing' operators
     ////////////////////////////////////////////////////////////////////////////////
     T& operator()(const size_t row, const size_t col) {
-        return *(BASE::begin() + (row * cols + col));
+        return *(BASE::begin() + (row * _cols + col));
     }
     const T& operator()(const size_t row, const size_t col) const {
-        return *(BASE::begin() + (row * cols + col));
+        return *(BASE::begin() + (row * _cols + col));
     }
     
     ////////////////////////////////////////////////////////////////////////////////
     //       Inplace addition
     ////////////////////////////////////////////////////////////////////////////////
     Matrix<T>& operator+=(const Matrix<T>& rhs) {
-        if((rhs.rows != rows) or (rhs.cols != cols)) throw "Addition: Dimensions mismatch";
+        if((rhs.rows != rows) or (rhs._cols != _cols)) throw "Addition: Dimensions mismatch";
 
         auto x = BASE::begin();
         auto b = rhs.begin();
@@ -174,14 +188,14 @@ public:
     static std::vector<T> bpsolver(Matrix<T>& A, std::vector<T>& b){
         std::vector<T> r(A.rows);
         for(int i=0; i<A.rows; i++)
-            for(int j=0; j<A.cols; j++)
+            for(int j=0; j<A._cols; j++)
                 r[i] += A(i,j); // std::accumulate could be used...
         return bpsolver(A, b, r);
     }
 
     static std::vector<T> bpsolver(Matrix<T>& A, std::vector<T>& b, std::vector<T>& r){
         if(A.size() == 0) throw "BPSolver: Null matrix";
-        if((A.cols != A.rows) or (b.size() != A.cols) or (r.size() != A.cols)) throw "BPSolver: Dimensions mismatch";
+        if((A._cols != A._rows) or (b.size() != A._cols) or (r.size() != A._cols)) throw "BPSolver: Dimensions mismatch";
         
         const size_t N = b.size();
 
@@ -291,7 +305,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////
     static size_t gaussian_solve(Matrix<T>& A, std::vector<T> &b) {
         if(A.size() == 0) throw "Gaussian solve: Null matrix";
-        if( (A.cols != A.rows) or (b.size() != A.cols) ) throw "Gaussian solve: Dimensions mismatch";
+        if( (A._cols != A._rows) or (b.size() != A._cols) ) throw "Gaussian solve: Dimensions mismatch";
         
         size_t N = b.size();
         
@@ -351,8 +365,8 @@ public:
     }
     
 protected:
-    size_t rows;
-    size_t cols;
+    size_t _rows;
+    size_t _cols;
     
     
 //***************************************************************************
@@ -402,11 +416,11 @@ protected:
     //       Matrix multiplication
     ////////////////////////////////////////////////////////////////////////////////
     friend Matrix<T> operator*(const Matrix<T>& A, const Matrix<T>& B) {
-        if(A.cols != B.rows) throw "Product: Dimensions mismatch";
-        Matrix<T> AB(A.rows, B.cols, T(0));
-        for(int i=0; i<A.rows; i++)
-            for(int j=0; j<B.cols; j++)
-                for(int k=0; k<A.cols; k++)
+        if(A._cols != B._rows) throw "Product: Dimensions mismatch";
+        Matrix<T> AB(A._rows, B._cols, T(0));
+        for(int i=0; i<A._rows; i++)
+            for(int j=0; j<B._cols; j++)
+                for(int k=0; k<A._cols; k++)
                     AB(i,j) += A(i,k) * B(k,j);
         return AB;
     }
@@ -415,7 +429,7 @@ protected:
     //       Matrix "oposite"
     ////////////////////////////////////////////////////////////////////////////////
     friend Matrix<T> operator-(const Matrix<T>& A) {
-        Matrix<T> mA(A.cols, A.rows);
+        Matrix<T> mA(A._cols, A._rows);
         std::transform(A.begin(), A.end(), mA.begin(), [](const T& x)->T { return x; });
     };
     friend Matrix<T> operator-(const Matrix<T>&& A) {
@@ -428,7 +442,7 @@ protected:
         return std::move(A) - B;
     }
     friend Matrix<T> operator-(const Matrix<T>& A, Matrix<T> &&B) {
-        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Substraction: Dimensions mismatch";
+        if((A._rows != B._rows) or (A._cols != B._cols)) throw "Substraction: Dimensions mismatch";
         
         Matrix AB(std::move(B));
         std::transform(A.begin(), A.end(), AB.begin(), AB.begin(), [](const T& a, T& b){ return a-b; });
@@ -436,7 +450,7 @@ protected:
         return AB;
     }
     friend Matrix<T> operator-(Matrix<T>&& A, const Matrix<T> &B) {
-        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Substraction: Dimensions mismatch";
+        if((A._rows != B._rows) or (A._cols != B._cols)) throw "Substraction: Dimensions mismatch";
         
         Matrix AB(std::move(A));
         
@@ -447,9 +461,9 @@ protected:
         return AB;
     }
     friend Matrix<T> operator-(const Matrix<T>& A, const Matrix<T> &B) {
-        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Substraction: Dimensions mismatch";
+        if((A._rows != B._rows) or (A._cols != B._cols)) throw "Substraction: Dimensions mismatch";
         
-        Matrix<T> AB(A.rows, A.cols);
+        Matrix<T> AB(A._rows, A._cols);
         std::transform(A.begin(), A.end(), A.begin(), AB.begin(), [](const T& a, T& b){ return a-b; });
         
         return AB;
@@ -465,7 +479,7 @@ protected:
         return std::move(A) + B;
     }
     friend Matrix<T> operator+(Matrix<T> &&A, const Matrix<T>& B) {
-        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Addition: Dimensions mismatch";
+        if((A._rows != B._rows) or (A._cols != B._cols)) throw "Addition: Dimensions mismatch";
         
         Matrix AB(std::move(A));
         auto x = AB.begin();
@@ -475,9 +489,9 @@ protected:
         return AB;
     }
     friend Matrix<T> operator+(const Matrix<T> &A, const Matrix<T>& B) {
-        if((A.rows != B.rows) or (A.cols != B.cols)) throw "Addition: Dimensions mismatch";
+        if((A._rows != B._rows) or (A._cols != B._cols)) throw "Addition: Dimensions mismatch";
 
-        Matrix<T> AB(A.rows, A.cols);        
+        Matrix<T> AB(A._rows, A._cols);        
         std::transform(A.begin(), A.end(), A.begin(), AB.begin(), [](const T& a, const T& b)->T { return a + b; });
 
         return AB;
