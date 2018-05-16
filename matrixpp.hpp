@@ -8,7 +8,6 @@
 
 #include <memory>
 #include <vector>
-#include <iostream>
 #include <sstream>
 #include <algorithm>
 #include <numeric>
@@ -107,19 +106,19 @@ namespace matrixpp {
         //       Constructors
         ////////////////////////////////////////////////////////////////////////////////
         Matrix() : _cols{0}, _rows{0}, BASE() {
-            std::cout << "contructor: default " << std::endl;
+//            std::cout << "contructor: default " << std::endl;
         }
         Matrix(const size_t rows, const size_t cols) : _rows{rows}, _cols{cols}, BASE(rows*cols) {
-            std::cout << "contructor: r/c" << std::endl;
+//            std::cout << "contructor: r/c" << std::endl;
         }
         Matrix(const size_t rows, const size_t cols, const T& val) : _rows{rows}, _cols{cols}, BASE(rows*cols, val) {
-            std::cout << "contructor: r/c/v" << std::endl;
+//            std::cout << "contructor: r/c/v" << std::endl;
         }
         Matrix(const Matrix<T>& A) : _rows{A._rows}, _cols{A._cols}, BASE(static_cast<const BASE&>(A)) {
-            std::cout << "constructor: copy" << std::endl;
+//            std::cout << "constructor: copy" << std::endl;
         }
         Matrix(Matrix<T>&& A) : _rows{A._rows}, _cols{A._cols}, BASE(static_cast<BASE&&>(A)) {
-            std::cout << "constructor: move" << std::endl;
+//            std::cout << "constructor: move" << std::endl;
         }
         
         
@@ -163,14 +162,14 @@ namespace matrixpp {
             _cols = rhv._cols;
             _rows = rhv._rows;
             BASE::operator=( static_cast<BASE&&>(rhv) );
-            std::cout<< "assign: move" <<std::endl;
+//            std::cout<< "assign: move" <<std::endl;
             return *this;
         }
         Matrix<T>& operator=(const Matrix<T>& rhv) {
             _cols = rhv._cols;
             _rows = rhv._rows;
             BASE::operator=( static_cast<const BASE&>(rhv) );
-            std::cout<< "assign: copy" <<std::endl;
+//            std::cout<< "assign: copy" <<std::endl;
             return *this;
         }
         
@@ -338,10 +337,12 @@ namespace matrixpp {
         friend Matrix<T> operator-(const Matrix<T>& A) {
             Matrix<T> mA(A._cols, A._rows);
             std::transform(A.begin(), A.end(), mA.begin(), [](const T& x)->T { return x; });
+            return mA;
         };
         friend Matrix<T> operator-(const Matrix<T>&& A) {
             Matrix<T> mA(std::move(A));
             std::for_each(mA.begin(), mA.end(), [](T& x){ x = -x; });
+            return mA;
         };
         
         // Matrix Substration
@@ -414,21 +415,53 @@ namespace matrixpp {
     //########################################################################################
     
     ////////////////////////////////////////////////////////////////////////////////
+    //       Indentity construction
+    ////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Matrix<T> Identity(const size_t n) {
+        Matrix<T> I(n, n, T(0));
+        for(size_t i=0; i<n; i++) I(i,i) = T(1);
+        return I;
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    //       Diagonal from vector constructor
+    ////////////////////////////////////////////////////////////////////////////////
+    template<class T>
+    Matrix<T> Diagonal(std::vector<T> diag) {
+        const size_t n = diag.size();
+        Matrix<T> D(n, n, T(0));
+        auto it = diag.begin();
+        for(size_t i=0; i<n; i++) D(i,i) = *(it++);
+        return D;
+    }
+    
+    template<class T>
+    Matrix<T> Diagonal(std::initializer_list<T> diag) {
+        const size_t n = diag.size();
+        Matrix<T> D(n, n, T(0));
+        auto it = diag.begin();
+        for(size_t i=0; i<n; i++) D(i,i) = *(it++);
+        return D;
+    }
+
+    
+    ////////////////////////////////////////////////////////////////////////////////
     //       Barreras & Peñas Solver
     ////////////////////////////////////////////////////////////////////////////////
     template<class T>
     static std::vector<T> bpsolver(Matrix<T>& A, std::vector<T>& b){
-        std::vector<T> r(A.rows);
-        for(int i=0; i<A.rows; i++)
-            for(int j=0; j<A._cols; j++)
+        std::vector<T> r(A.rows());
+        for(int i=0; i<A.rows(); i++)
+            for(int j=0; j<A.cols(); j++)
                 r[i] += A(i,j); // std::accumulate could be used...
         return bpsolver(A, b, r);
     }
     
     template<class T>
     static std::vector<T> bpsolver(Matrix<T>& A, std::vector<T>& b, std::vector<T>& r){
-        if(A.size() == 0) throw "BPSolver: Null matrix";
-        if((A._cols != A._rows) or (b.size() != A._cols) or (r.size() != A._cols)) throw "BPSolver: Dimensions mismatch";
+        if(A.cols()*A.rows() == 0) throw "BPSolver: Null matrix";
+        if((A.cols() != A.rows()) or (b.size() != A.cols()) or (r.size() != A.cols())) throw "BPSolver: Dimensions mismatch";
         
         const size_t N = b.size();
         
@@ -439,7 +472,7 @@ namespace matrixpp {
         std::vector<size_t> p(N);
         std::iota(p.begin(), p.end(), 0);
         
-        Matrix<T> L = Matrix<T>::Identity(N);
+        Matrix<T> L = Identity<T>(N);
         Matrix<T> U(N, N, T(0));
         std::vector<T> D(N, T(0));
         std::vector<T> s(N, T(0)); // Off-diagonal col sums
@@ -599,36 +632,6 @@ namespace matrixpp {
     }
 
     
-    ////////////////////////////////////////////////////////////////////////////////
-    //       Indentity construction
-    ////////////////////////////////////////////////////////////////////////////////
-    template<class T>
-    Matrix<T> Identity(const size_t n) {
-        Matrix<T> I(n, n, T(0));
-        for(size_t i=0; i<n; i++) I(i,i) = T(1);
-        return I;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    //       Diagonal from vector constructor
-    ////////////////////////////////////////////////////////////////////////////////
-    template<class T>
-    Matrix<T> Diagonal(std::vector<T> diag) {
-        const size_t n = diag.size();
-        Matrix<T> D(n, n, T(0));
-        auto it = diag.begin();
-        for(size_t i=0; i<n; i++) D(i,i) = *(it++);
-        return D;
-    }
-
-    template<class T>
-    Matrix<T> Diagonal(std::initializer_list<T> diag) {
-        const size_t n = diag.size();
-        Matrix<T> D(n, n, T(0));
-        auto it = diag.begin();
-        for(size_t i=0; i<n; i++) D(i,i) = *(it++);
-        return D;
-    }
 
     
 
