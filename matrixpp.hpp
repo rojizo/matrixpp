@@ -489,9 +489,9 @@ protected:
         
         Matrix AB(std::move(A));
         
-        auto x = AB.begin();
         auto b = B.begin();
-        while(x != AB.end()) *(x++) -= *(b++);
+        for(auto& x : AB)
+            x -= *(b++);
         
         return AB;
     }
