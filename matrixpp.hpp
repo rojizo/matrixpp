@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include <algorithm>
 #include <numeric>
 #include <type_traits>
@@ -158,7 +159,7 @@ public:
     //       Inplace addition
     ////////////////////////////////////////////////////////////////////////////////
     Matrix<T>& operator+=(const Matrix<T>& rhs) {
-        if((rhs.rows != rows) or (rhs._cols != _cols)) throw "Addition: Dimensions mismatch";
+        if((rhs._rows != _rows) or (rhs._cols != _cols)) throw "Addition: Dimensions mismatch";
 
         auto x = BASE::begin();
         auto b = rhs.begin();
@@ -364,6 +365,9 @@ public:
         return 0;
     }
     
+    
+
+    
 protected:
     size_t _rows;
     size_t _cols;
@@ -372,6 +376,37 @@ protected:
 //***************************************************************************
 // Non member operators...
 //***************************************************************************
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    //       Output to stream
+    ////////////////////////////////////////////////////////////////////////////////
+    friend std::ostream& operator<<(std::ostream& os, const Matrix<T>& A) {
+        // Compute the longest thing to print
+        std::vector<std::string> thingsToPrint(A.size());
+        
+        auto its = thingsToPrint.begin();
+        size_t max = 0;
+        for(const auto& a : A) {
+            std::stringstream ss;
+            ss << a <<std::flush;
+            (*its) = ss.str();
+            if(max < (*its).size()) max = (*its).size();
+            its++;
+        }
+        
+        max += 2; // Leave some space
+        its = thingsToPrint.begin();
+        for(int i=0; i<A.rows(); i++) {
+            for(int j=0; j<A.cols(); j++) {
+                os.width(max);
+                os << std::right << *(its++);
+            }
+            os << std::endl;
+        }
+        
+        return os;
+    }
+
     
     ////////////////////////////////////////////////////////////////////////////////
     //       Scalar multiplication
@@ -496,10 +531,9 @@ protected:
 
         return AB;
     }
+    
+
 };
-
-
-
 
         
         
