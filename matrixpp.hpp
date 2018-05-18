@@ -11,6 +11,7 @@
 #include <sstream>
 #include <algorithm>
 #include <numeric>
+#include <functional>
 #include <type_traits>
 
 #ifndef matrix_h
@@ -95,7 +96,7 @@ namespace matrixpp {
     //########################################################################################
     //########################################################################################
     template<class T>
-    class Matrix : protected std::conditional<std::is_arithmetic<T>::value, dumbdownvector<T>, std::vector<T>>::type {
+    class Matrix : public std::conditional<std::is_arithmetic<T>::value, dumbdownvector<T>, std::vector<T>>::type {
         
         // Base type name
         typedef typename std::conditional<std::is_arithmetic<T>::value, dumbdownvector<T>, std::vector<T>>::type BASE;
@@ -148,6 +149,18 @@ namespace matrixpp {
         }
         size_t rows() const {
             return _rows;
+        }
+        
+        ////////////////////////////////////////////////////////////////////////////////
+        //       Apply function to elements
+        ////////////////////////////////////////////////////////////////////////////////
+        template<class U>
+        Matrix<U> apply(const std::function<U(const T&)>& f) const {
+            Matrix<U> fA(rows(), cols());
+            auto it = fA.begin();
+            for(auto& a : *this) *(it++) = f(a);
+            
+            return fA;
         }
         
         
@@ -238,7 +251,6 @@ namespace matrixpp {
             return *this;
         }
         
-
     protected:
         size_t _rows;
         size_t _cols;
@@ -428,7 +440,7 @@ namespace matrixpp {
     //       Diagonal from vector constructor
     ////////////////////////////////////////////////////////////////////////////////
     template<class T>
-    Matrix<T> Diagonal(std::vector<T> diag) {
+    Matrix<T> Diagonal(const std::vector<T>& diag) {
         const size_t n = diag.size();
         Matrix<T> D(n, n, T(0));
         auto it = diag.begin();
@@ -437,7 +449,7 @@ namespace matrixpp {
     }
     
     template<class T>
-    Matrix<T> Diagonal(std::initializer_list<T> diag) {
+    Matrix<T> Diagonal(const std::initializer_list<T>& diag) {
         const size_t n = diag.size();
         Matrix<T> D(n, n, T(0));
         auto it = diag.begin();
