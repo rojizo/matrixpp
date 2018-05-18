@@ -241,7 +241,7 @@ namespace matrixpp {
         //       Inplace addition
         ////////////////////////////////////////////////////////////////////////////////
         Matrix<T>& operator+=(const Matrix<T>& rhs) {
-            if((rhs._rows != _rows) or (rhs._cols != _cols)) throw "Addition: Dimensions mismatch";
+            if((rhs._rows != _rows) or (rhs._cols != _cols)) throw std::runtime_error("Addition: Dimensions mismatch");
             
             auto x = BASE::begin();
             auto b = rhs.begin();
@@ -334,7 +334,7 @@ namespace matrixpp {
         //       Matrix multiplication
         ////////////////////////////////////////////////////////////////////////////////
         friend Matrix<T> operator*(const Matrix<T>& A, const Matrix<T>& B) {
-            if(A._cols != B._rows) throw "Product: Dimensions mismatch";
+            if(A._cols != B._rows) throw std::runtime_error("Product: Dimensions mismatch");
             Matrix<T> AB(A._rows, B._cols, T(0));
             for(int i=0; i<A._rows; i++)
                 for(int j=0; j<B._cols; j++)
@@ -362,7 +362,7 @@ namespace matrixpp {
             return std::move(A) - B;
         }
         friend Matrix<T> operator-(const Matrix<T>& A, Matrix<T> &&B) {
-            if((A._rows != B._rows) or (A._cols != B._cols)) throw "Substraction: Dimensions mismatch";
+            if((A._rows != B._rows) or (A._cols != B._cols)) throw std::runtime_error("Substraction: Dimensions mismatch");
             
             Matrix AB(std::move(B));
             std::transform(A.begin(), A.end(), AB.begin(), AB.begin(), [](const T& a, T& b){ return a-b; });
@@ -370,7 +370,7 @@ namespace matrixpp {
             return AB;
         }
         friend Matrix<T> operator-(Matrix<T>&& A, const Matrix<T> &B) {
-            if((A._rows != B._rows) or (A._cols != B._cols)) throw "Substraction: Dimensions mismatch";
+            if((A._rows != B._rows) or (A._cols != B._cols)) throwstd::runtime_error("Substraction: Dimensions mismatch");
             
             Matrix AB(std::move(A));
             
@@ -381,7 +381,7 @@ namespace matrixpp {
             return AB;
         }
         friend Matrix<T> operator-(const Matrix<T>& A, const Matrix<T> &B) {
-            if((A._rows != B._rows) or (A._cols != B._cols)) throw "Substraction: Dimensions mismatch";
+            if((A._rows != B._rows) or (A._cols != B._cols)) throw std::runtime_error("Substraction: Dimensions mismatch");
             
             Matrix<T> AB(A._rows, A._cols);
             std::transform(A.begin(), A.end(), A.begin(), AB.begin(), [](const T& a, T& b){ return a-b; });
@@ -399,7 +399,7 @@ namespace matrixpp {
             return std::move(A) + B;
         }
         friend Matrix<T> operator+(Matrix<T> &&A, const Matrix<T>& B) {
-            if((A._rows != B._rows) or (A._cols != B._cols)) throw "Addition: Dimensions mismatch";
+            if((A._rows != B._rows) or (A._cols != B._cols)) throw std::runtime_error("Addition: Dimensions mismatch");
             
             Matrix AB(std::move(A));
             auto x = AB.begin();
@@ -409,7 +409,7 @@ namespace matrixpp {
             return AB;
         }
         friend Matrix<T> operator+(const Matrix<T> &A, const Matrix<T>& B) {
-            if((A._rows != B._rows) or (A._cols != B._cols)) throw "Addition: Dimensions mismatch";
+            if((A._rows != B._rows) or (A._cols != B._cols)) throw std::runtime_error("Addition: Dimensions mismatch");
             
             Matrix<T> AB(A._rows, A._cols);
             std::transform(A.begin(), A.end(), A.begin(), AB.begin(), [](const T& a, const T& b)->T { return a + b; });
@@ -472,8 +472,8 @@ namespace matrixpp {
     
     template<class T>
     static std::vector<T> bpsolver(Matrix<T>& A, std::vector<T>& b, std::vector<T>& r){
-        if(A.cols()*A.rows() == 0) throw "BPSolver: Null matrix";
-        if((A.cols() != A.rows()) or (b.size() != A.cols()) or (r.size() != A.cols())) throw "BPSolver: Dimensions mismatch";
+        if(A.cols()*A.rows() == 0) throw std::runtime_error("BPSolver: Null matrix");
+        if((A.cols() != A.rows()) or (b.size() != A.cols()) or (r.size() != A.cols())) throw std::runtime_error("BPSolver: Dimensions mismatch");
         
         const size_t N = b.size();
         
@@ -583,8 +583,8 @@ namespace matrixpp {
     ////////////////////////////////////////////////////////////////////////////////
     template<class T>
     static size_t gaussian_solve(Matrix<T>& A, std::vector<T> &b) {
-        if(A.size() == 0) throw "Gaussian solve: Null matrix";
-        if( (A._cols != A._rows) or (b.size() != A._cols) ) throw "Gaussian solve: Dimensions mismatch";
+        if(A.size() == 0) throw std::runtime_error("Gaussian solve: Null matrix");
+        if( (A._cols != A._rows) or (b.size() != A._cols) ) throw std::runtime_error("Gaussian solve: Dimensions mismatch");
         
         size_t N = b.size();
         
