@@ -370,7 +370,7 @@ namespace matrixpp {
             return AB;
         }
         friend Matrix<T> operator-(Matrix<T>&& A, const Matrix<T> &B) {
-            if((A._rows != B._rows) or (A._cols != B._cols)) throwstd::runtime_error("Substraction: Dimensions mismatch");
+            if((A._rows != B._rows) or (A._cols != B._cols)) throw std::runtime_error("Substraction: Dimensions mismatch");
             
             Matrix AB(std::move(A));
             
