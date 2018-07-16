@@ -384,7 +384,7 @@ namespace matrixpp {
             if((A._rows != B._rows) or (A._cols != B._cols)) throw std::runtime_error("Substraction: Dimensions mismatch");
             
             Matrix<T> AB(A._rows, A._cols);
-            std::transform(A.begin(), A.end(), A.begin(), AB.begin(), [](const T& a, T& b){ return a-b; });
+            std::transform(A.begin(), A.end(), B.begin(), AB.begin(), [](const T& a, const T& b){ return a-b; });
             
             return AB;
         }
